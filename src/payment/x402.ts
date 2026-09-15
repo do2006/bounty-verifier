@@ -1,0 +1,67 @@
+import type { MiddlewareHandler } from 'hono';
+import { paymentMiddleware } from '@x402/hono';
+import {
+  HTTPFacilitatorClient,
+  x402ResourceServer,
+  type FacilitatorClient,
+} from '@x402/core/server';
+import type { Network } from '@x402/core/types';
+import { registerExactEvmScheme } from '@x402/evm/exact/server';
+import { declareDiscoveryExtension } from '@x402/extensions/bazaar';
+import type { PaymentConfig } from './config.js';
+
+export function createX402PaymentMiddleware(
+  config: Extract<PaymentConfig, { enabled: true }>,
+  facilitator?: FacilitatorClient,
+): MiddlewareHandler {
+  const facilitatorClient = facilitator ?? new HTTPFacilitatorClient({
+    url: config.facilitatorUrl,
+    timeoutMs: 15_000,
+  });
+
+  const server = new x402ResourceServer(facilitatorClient);
+  registerExactEvmScheme(server, { networks: [config.network as Network] });
+
+  const discovery = declareDiscoveryExtension({
+    bodyType: 'json',
+    input: { url: 'https://github.com/owner/repo/issues/123' },
+    inputSchema: {
+      properties: {
+        url: {
+          type: 'string',
+          description: 'Public GitHub issue URL to verify.',
+        },
+      },
+      required: ['url'],
+      additionalProperties: false,
+    },
+    output: {
+      example: {
+        sourceUrl: 'https://github.com/owner/repo/issues/123',
+        reward: { amount: 20, currency: 'USDC' },
+        fundingConfidence: 'stated_not_verified',
+        verdict: 'pursue',
+      },
+    },
+  });
+
+  const routes = {
+    'POST /verify': {
+      accepts: [
+        {
+          scheme: 'exact' as const,
+          price: config.price,
+          network: config.network as Network,
+          payTo: config.receiver,
+        },
+      ],
+      description: 'Verify whether a public GitHub bounty is actionable, funded-looking, and low-friction.',
+      mimeType: 'application/json',
+      serviceName: 'BountyVerifier',
+      tags: ['github', 'bounties', 'developer-tools', 'agents'],
+      extensions: discovery,
+    },
+  };
+
+  return paymentMiddleware(routes, server, undefined, undefined, true);
+}

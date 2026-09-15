@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 import type { BountySnapshot } from '../domain/types.js';
 import { verifySnapshot } from '../domain/verify.js';
 import { fetchGitHubSnapshot, GitHubSourceError } from '../sources/github.js';
@@ -7,6 +7,8 @@ import { errorEnvelope } from './errors.js';
 
 export interface AppDependencies {
   fetchSnapshot?: (url: string) => Promise<BountySnapshot>;
+  paymentMiddleware?: MiddlewareHandler;
+  paidVerification?: boolean;
 }
 
 const demoSnapshot: BountySnapshot = {
@@ -27,12 +29,17 @@ const demoSnapshot: BountySnapshot = {
 export function createApp(deps: AppDependencies = {}) {
   const app = new Hono();
   const fetchSnapshot = deps.fetchSnapshot ?? fetchGitHubSnapshot;
+  const paidVerification = deps.paidVerification ?? Boolean(deps.paymentMiddleware);
 
   app.get('/health', (c) =>
-    c.json({ ok: true, service: 'bounty-verifier', version: '0.1.0', paidVerification: false }),
+    c.json({ ok: true, service: 'bounty-verifier', version: '0.1.0', paidVerification }),
   );
 
   app.get('/demo', (c) => c.json(verifySnapshot(demoSnapshot)));
+
+  if (deps.paymentMiddleware) {
+    app.use('/verify', deps.paymentMiddleware);
+  }
 
   app.post('/verify', async (c) => {
     const requestId = crypto.randomUUID();
