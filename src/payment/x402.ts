@@ -56,10 +56,18 @@ export function createX402PaymentMiddleware(
     'GET /verify': {
       accepts: [{ scheme: 'exact' as const, price: config.price, network: config.network as Network, payTo: config.receiver }],
       description, mimeType: 'application/json', serviceName, tags,
+      unpaidResponseBody: async (context: HTTPRequestContext) => {
+        const parsedPrice = await priceParser.parsePrice(config.price, config.network as Network);
+        return { contentType: 'application/json', body: { x402Version: 2, error: 'Payment required', resource: { url: context.adapter.getUrl(), description, mimeType: 'application/json', serviceName, tags }, accepts: [{ scheme: 'exact', network: config.network, amount: parsedPrice.amount, asset: parsedPrice.asset, payTo: config.receiver, maxTimeoutSeconds: 300, extra: parsedPrice.extra }] } };
+      },
     },
     'GET /verify/deep': {
       accepts: [{ scheme: 'exact' as const, price: config.deepPrice, network: config.network as Network, payTo: config.receiver }],
       description: deepDescription, mimeType: 'application/json', serviceName, tags: [...tags, 'deep-analysis'],
+      unpaidResponseBody: async (context: HTTPRequestContext) => {
+        const parsedPrice = await priceParser.parsePrice(config.deepPrice, config.network as Network);
+        return { contentType: 'application/json', body: { x402Version: 2, error: 'Payment required', resource: { url: context.adapter.getUrl(), description: deepDescription, mimeType: 'application/json', serviceName, tags: [...tags, 'deep-analysis'] }, accepts: [{ scheme: 'exact', network: config.network, amount: parsedPrice.amount, asset: parsedPrice.asset, payTo: config.receiver, maxTimeoutSeconds: 300, extra: parsedPrice.extra }] } };
+      },
     },
     'GET /': {
       accepts: [{ scheme: 'exact' as const, price: config.price, network: config.network as Network, payTo: config.receiver }],
