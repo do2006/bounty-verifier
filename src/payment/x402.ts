@@ -31,7 +31,7 @@ export function createX402PaymentMiddleware(
 
   const discovery = declareDiscoveryExtension({
     bodyType: 'json',
-    input: { url: 'https://github.com/owner/repo/issues/123' },
+    input: { url: 'https://github.com/x402-foundation/x402/issues/803' },
     inputSchema: {
       properties: {
         url: {
@@ -44,7 +44,7 @@ export function createX402PaymentMiddleware(
     },
     output: {
       example: {
-        sourceUrl: 'https://github.com/owner/repo/issues/123',
+        sourceUrl: 'https://github.com/x402-foundation/x402/issues/803',
         reward: { amount: 20, currency: 'USDC' },
         fundingConfidence: 'stated_not_verified',
         verdict: 'pursue',
