@@ -47,3 +47,26 @@ export interface VerificationResult {
   };
   verdict: Verdict;
 }
+
+export interface DeepVerificationResult extends VerificationResult {
+  evidence: Array<{
+    kind: 'reward' | 'payout' | 'claim' | 'policy' | 'competition' | 'cost';
+    source: 'issue' | 'comments' | 'contribution_policy';
+    excerpt: string;
+  }>;
+  claim: {
+    state: 'assigned' | 'claim_instructions' | 'unknown';
+    assignees: string[];
+    instructions: string | null;
+  };
+  effort: {
+    band: 'small' | 'medium' | 'large';
+    reasons: string[];
+  };
+  payout: {
+    rail: 'direct_stablecoin' | 'fiat' | 'major_crypto' | 'unknown';
+    currency: string | null;
+    notes: string[];
+  };
+  riskReasons: string[];
+}

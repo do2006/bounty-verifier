@@ -29,3 +29,23 @@ describe('HTTP payment boundary', () => {
     expect(await verify.json()).toEqual({ error: 'payment_required' });
   });
 });
+
+
+test('gates the deep verification handler before GitHub work runs', async () => {
+  const app = createApp({
+    paymentMiddleware: blocker,
+    paidVerification: true,
+    fetchSnapshot: async () => ({
+      sourceUrl: 'https://github.com/acme/widgets/issues/7', repository: 'acme/widgets', issueNumber: 7,
+      title: 'Paid bounty', body: 'Bounty: $20 USDC. Paid on merge.', comments: [], commentCount: 0,
+      assignees: [], openRelatedPrCount: 0, labels: ['bounty'], contributionPolicy: null,
+      retrievedAt: '2026-09-15T22:00:00.000Z',
+    }),
+  });
+  const response = await app.request('/verify/deep', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ url: 'https://github.com/acme/widgets/issues/7' }),
+  });
+  expect(response.status).toBe(402);
+});

@@ -1,6 +1,6 @@
 import { Hono, type MiddlewareHandler } from 'hono';
 import type { BountySnapshot } from '../domain/types.js';
-import { verifySnapshot } from '../domain/verify.js';
+import { verifyDeepSnapshot, verifySnapshot } from '../domain/verify.js';
 import { fetchGitHubSnapshot, GitHubSourceError } from '../sources/github.js';
 import { parseGitHubIssueUrl } from '../sources/url.js';
 import { errorEnvelope } from './errors.js';
@@ -60,7 +60,32 @@ export function createApp(deps: AppDependencies = {}) {
 
   if (deps.paymentMiddleware) {
     app.use('/verify', deps.paymentMiddleware);
+    app.use('/verify/deep', deps.paymentMiddleware);
   }
+
+  app.post('/verify/deep', async (c) => {
+    const requestId = crypto.randomUUID();
+    let payload: unknown;
+    try { payload = await c.req.json(); }
+    catch { return c.json(errorEnvelope('invalid_json', 'Request body must be valid JSON.', requestId), 400); }
+    if (!payload || typeof payload !== 'object' || !('url' in payload)) {
+      return c.json(errorEnvelope('missing_url', 'A GitHub issue URL is required.', requestId), 400);
+    }
+    const url = (payload as { url?: unknown }).url;
+    if (typeof url !== 'string' || url.length === 0) {
+      return c.json(errorEnvelope('missing_url', 'A GitHub issue URL is required.', requestId), 400);
+    }
+    try { parseGitHubIssueUrl(url); }
+    catch { return c.json(errorEnvelope('unsupported_url', 'Only public GitHub issue URLs are supported.', requestId), 400); }
+    try { return c.json(verifyDeepSnapshot(await fetchSnapshot(url))); }
+    catch (error) {
+      if (error instanceof GitHubSourceError) {
+        if (error.retryable) return c.json(errorEnvelope('upstream_retry', 'GitHub is temporarily unavailable; retry later.', requestId), 503);
+        return c.json(errorEnvelope('upstream_error', error.message, requestId), 502);
+      }
+      return c.json(errorEnvelope('internal_error', 'Verification failed.', requestId), 500);
+    }
+  });
 
   app.post('/verify', async (c) => {
     const requestId = crypto.randomUUID();

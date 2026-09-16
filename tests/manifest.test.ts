@@ -22,5 +22,8 @@ describe('x402 well-known manifest', () => {
         price: '$0.005',
       }),
     ]));
+    expect(body.resources).toEqual(expect.arrayContaining([
+      expect.objectContaining({ method: 'POST', resource: 'POST /verify/deep', price: '$0.05' }),
+    ]));
   });
 });

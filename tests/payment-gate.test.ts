@@ -26,6 +26,7 @@ describe('loadPaymentConfig', () => {
       receiver,
       network: 'eip155:8453',
       price: '$0.005',
+      deepPrice: '$0.05',
     });
   });
 });

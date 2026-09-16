@@ -4,6 +4,7 @@ export interface PaymentEnv {
   X402_FACILITATOR_URL?: string;
   X402_NETWORK?: string;
   X402_PRICE?: string;
+  X402_DEEP_PRICE?: string;
 }
 
 export type PaymentConfig =
@@ -14,6 +15,7 @@ export type PaymentConfig =
       facilitatorUrl: string;
       network: string;
       price: string;
+      deepPrice: string;
     };
 
 export function loadPaymentConfig(env: PaymentEnv): PaymentConfig {
@@ -31,5 +33,6 @@ export function loadPaymentConfig(env: PaymentEnv): PaymentConfig {
     facilitatorUrl: env.X402_FACILITATOR_URL ?? 'https://facilitator.payai.network',
     network: env.X402_NETWORK ?? 'eip155:8453',
     price: env.X402_PRICE ?? '$0.005',
+    deepPrice: env.X402_DEEP_PRICE ?? '$0.05',
   };
 }

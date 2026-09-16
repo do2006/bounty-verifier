@@ -18,5 +18,10 @@ describe('OpenAPI discovery document', () => {
     });
     expect(spec.paths['/verify'].post.responses['402']).toBeTruthy();
     expect(spec.paths['/verify'].post.requestBody.required).toBe(true);
+    expect(spec.paths['/verify/deep']).toBeTruthy();
+    expect(spec.paths['/verify/deep']?.post['x-payment-info']).toMatchObject({
+      protocols: ['x402'], pricingMode: 'fixed', price: '0.05', currency: 'USD',
+    });
+    expect(spec.paths['/verify/deep']?.post.responses['402']).toBeTruthy();
   });
 });

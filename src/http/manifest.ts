@@ -21,6 +21,21 @@ export const x402Manifest = {
       },
       outputSchema: { type: 'object' },
     },
+    {
+      url: 'https://bounty-verifier-api.planet-teacher.workers.dev/verify/deep',
+      resource: 'POST /verify/deep',
+      method: 'POST',
+      description: 'Deep GitHub bounty report with evidence, claim state, effort estimate, payout rail, and risk reasons.',
+      price: '$0.05',
+      tags: ['github', 'bounties', 'developer-tools', 'agents', 'deep-analysis'],
+      inputSchema: {
+        type: 'object',
+        properties: { url: { type: 'string', description: 'Public GitHub issue URL to verify.' } },
+        required: ['url'],
+        additionalProperties: false,
+      },
+      outputSchema: { type: 'object' },
+    },
   ],
   freeResources: [
     { resource: 'GET /health', price: 'free' },

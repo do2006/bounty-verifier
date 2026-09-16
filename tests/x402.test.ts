@@ -28,6 +28,7 @@ describe('createX402PaymentMiddleware', () => {
       facilitatorUrl: 'https://example.invalid',
       network: 'eip155:8453',
       price: '$0.005',
+      deepPrice: '$0.05',
     }, facilitator));
     app.post('/verify', (c) => c.json({ ok: true }));
 
@@ -66,6 +67,7 @@ test('returns a decodable x402 challenge at the service root', async () => {
     facilitatorUrl: 'https://example.invalid',
     network: 'eip155:8453',
     price: '$0.005',
+    deepPrice: '$0.05',
   }, facilitator));
   app.get('/', (c) => c.html('<h1>BountyVerifier</h1>'));
 
@@ -84,4 +86,30 @@ test('returns a decodable x402 challenge at the service root', async () => {
   const body = await response.json() as any;
   expect(body.x402Version).toBe(2);
   expect(body.accepts?.[0]?.amount).toBe('5000');
+});
+
+
+test('charges the deep verification route at five cents', async () => {
+  const app = new Hono();
+  app.use('/verify/deep', createX402PaymentMiddleware({
+    enabled: true,
+    receiver: '0x1111111111111111111111111111111111111111',
+    facilitatorUrl: 'https://example.invalid',
+    network: 'eip155:8453',
+    price: '$0.005',
+    deepPrice: '$0.05',
+  }, facilitator));
+  app.post('/verify/deep', (c) => c.json({ ok: true }));
+
+  const response = await app.request('/verify/deep', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ url: 'https://github.com/acme/widgets/issues/7' }),
+  });
+
+  expect(response.status).toBe(402);
+  const header = response.headers.get('payment-required');
+  expect(header).toBeTruthy();
+  const decoded = JSON.parse(Buffer.from(header!, 'base64').toString('utf8'));
+  expect(decoded.accepts?.[0]?.amount).toBe('50000');
 });

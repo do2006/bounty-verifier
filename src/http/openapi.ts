@@ -16,6 +16,19 @@ const verifyResultSchema = {
   },
 };
 
+const deepVerifyResultSchema = {
+  allOf: [verifyResultSchema, {
+    type: 'object',
+    properties: {
+      evidence: { type: 'array', items: { type: 'object' } },
+      claim: { type: 'object' },
+      effort: { type: 'object' },
+      payout: { type: 'object' },
+      riskReasons: { type: 'array', items: { type: 'string' } },
+    },
+  }],
+};
+
 export function openApiDocument() {
   return {
     openapi: '3.1.0',
@@ -78,6 +91,29 @@ export function openApiDocument() {
                 },
               },
             },
+            '502': { description: 'GitHub upstream error.' },
+            '503': { description: 'GitHub rate limit or transient upstream failure.' },
+          },
+        },
+      },
+      '/verify/deep': {
+        post: {
+          tags: ['AI', 'Utility'],
+          summary: 'Deep verification of a public GitHub bounty issue',
+          description: 'Adds evidence, claim state, effort estimate, payout rail, and explicit risk reasons.',
+          operationId: 'verifyBountyDeep',
+          'x-payment-info': { protocols: ['x402'], pricingMode: 'fixed', price: '0.05', currency: 'USD' },
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: {
+              type: 'object', properties: { url: { type: 'string', format: 'uri', description: 'Public GitHub issue URL.' } },
+              required: ['url'], additionalProperties: false,
+            } } },
+          },
+          responses: {
+            '200': { description: 'Deep bounty verification result.', content: { 'application/json': { schema: deepVerifyResultSchema } } },
+            '400': { description: 'Invalid or unsupported GitHub issue URL.' },
+            '402': { description: 'x402 payment required before deep verification runs.' },
             '502': { description: 'GitHub upstream error.' },
             '503': { description: 'GitHub rate limit or transient upstream failure.' },
           },
