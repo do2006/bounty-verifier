@@ -16,14 +16,15 @@ const deepDescription = 'Deep GitHub bounty report with evidence, claim state, e
 const serviceName = 'BountyVerifier';
 const tags = ['github', 'bounties', 'developer-tools', 'agents'];
 
+export function createFacilitatorClient(url: string): HTTPFacilitatorClient {
+  return new HTTPFacilitatorClient({ url, timeoutMs: 90_000 });
+}
+
 export function createX402PaymentMiddleware(
   config: Extract<PaymentConfig, { enabled: true }>,
   facilitator?: FacilitatorClient,
 ): MiddlewareHandler {
-  const facilitatorClient = facilitator ?? new HTTPFacilitatorClient({
-    url: config.facilitatorUrl,
-    timeoutMs: 15_000,
-  });
+  const facilitatorClient = facilitator ?? createFacilitatorClient(config.facilitatorUrl);
 
   const server = new x402ResourceServer(facilitatorClient);
   registerExactEvmScheme(server, { networks: [config.network as Network] });
