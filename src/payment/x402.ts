@@ -53,6 +53,14 @@ export function createX402PaymentMiddleware(
   });
 
   const routes = {
+    'GET /verify': {
+      accepts: [{ scheme: 'exact' as const, price: config.price, network: config.network as Network, payTo: config.receiver }],
+      description, mimeType: 'application/json', serviceName, tags,
+    },
+    'GET /verify/deep': {
+      accepts: [{ scheme: 'exact' as const, price: config.deepPrice, network: config.network as Network, payTo: config.receiver }],
+      description: deepDescription, mimeType: 'application/json', serviceName, tags: [...tags, 'deep-analysis'],
+    },
     'GET /': {
       accepts: [{ scheme: 'exact' as const, price: config.price, network: config.network as Network, payTo: config.receiver }],
       description: 'Access BountyVerifier service metadata and paid API entry point.',
