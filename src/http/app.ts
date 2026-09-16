@@ -61,6 +61,29 @@ export function createApp(deps: AppDependencies = {}) {
     return c.json(x402Manifest);
   });
 
+  app.get('/.well-known/x402-manifest.json', (c) => {
+    c.header('Cache-Control', 'public, max-age=300');
+    return c.json(x402Manifest);
+  });
+
+  app.get('/llms.txt', (c) => c.text(`# BountyVerifier
+
+Pay-per-call GitHub bounty due diligence for coding agents.
+
+POST /verify - $0.005 USDC - fast bounty preflight.
+POST /verify/deep - $0.05 USDC - evidence, claim state, effort, payout rail, and risk reasons.
+
+Network: Base mainnet (eip155:8453)
+Payment: x402 v2, Circle USDC
+Input: JSON {\"url\":\"https://github.com/owner/repo/issues/123\"}
+OpenAPI: /openapi.json
+x402 catalog: /.well-known/x402
+x402 manifest alias: /.well-known/x402-manifest.json
+Free health: /health
+Free demo: /demo
+Source: https://github.com/do2006/bounty-verifier
+`));
+
   app.get('/.well-known/x402-service.json', (c) => {
     c.header('Access-Control-Allow-Origin', '*');
     c.header('Cache-Control', 'public, max-age=300');
