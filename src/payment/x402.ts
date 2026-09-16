@@ -13,8 +13,6 @@ import type { PaymentConfig } from './config.js';
 
 const description = 'Verify whether a public GitHub bounty is actionable, funded-looking, and low-friction.';
 const deepDescription = 'Deep GitHub bounty report with evidence, claim state, effort estimate, payout rail, and risk reasons.';
-const serviceName = 'BountyVerifier';
-const tags = ['github', 'bounties', 'developer-tools', 'agents'];
 
 export function createFacilitatorClient(url: string): HTTPFacilitatorClient {
   return new HTTPFacilitatorClient({ url, timeoutMs: 90_000 });
@@ -56,31 +54,29 @@ export function createX402PaymentMiddleware(
   const routes = {
     'GET /verify': {
       accepts: [{ scheme: 'exact' as const, price: config.price, network: config.network as Network, payTo: config.receiver }],
-      description, mimeType: 'application/json', serviceName, tags,
+      description, mimeType: 'application/json',
       unpaidResponseBody: async (context: HTTPRequestContext) => {
         const parsedPrice = await priceParser.parsePrice(config.price, config.network as Network);
-        return { contentType: 'application/json', body: { x402Version: 2, error: 'Payment required', resource: { url: context.adapter.getUrl(), description, mimeType: 'application/json', serviceName, tags }, accepts: [{ scheme: 'exact', network: config.network, amount: parsedPrice.amount, asset: parsedPrice.asset, payTo: config.receiver, maxTimeoutSeconds: 300, extra: parsedPrice.extra }] } };
+        return { contentType: 'application/json', body: { x402Version: 2, error: 'Payment required', resource: { url: context.adapter.getUrl(), description, mimeType: 'application/json' }, accepts: [{ scheme: 'exact', network: config.network, amount: parsedPrice.amount, asset: parsedPrice.asset, payTo: config.receiver, maxTimeoutSeconds: 300, extra: parsedPrice.extra }] } };
       },
     },
     'GET /verify/deep': {
       accepts: [{ scheme: 'exact' as const, price: config.deepPrice, network: config.network as Network, payTo: config.receiver }],
-      description: deepDescription, mimeType: 'application/json', serviceName, tags: [...tags, 'deep-analysis'],
+      description: deepDescription, mimeType: 'application/json',
       unpaidResponseBody: async (context: HTTPRequestContext) => {
         const parsedPrice = await priceParser.parsePrice(config.deepPrice, config.network as Network);
-        return { contentType: 'application/json', body: { x402Version: 2, error: 'Payment required', resource: { url: context.adapter.getUrl(), description: deepDescription, mimeType: 'application/json', serviceName, tags: [...tags, 'deep-analysis'] }, accepts: [{ scheme: 'exact', network: config.network, amount: parsedPrice.amount, asset: parsedPrice.asset, payTo: config.receiver, maxTimeoutSeconds: 300, extra: parsedPrice.extra }] } };
+        return { contentType: 'application/json', body: { x402Version: 2, error: 'Payment required', resource: { url: context.adapter.getUrl(), description: deepDescription, mimeType: 'application/json' }, accepts: [{ scheme: 'exact', network: config.network, amount: parsedPrice.amount, asset: parsedPrice.asset, payTo: config.receiver, maxTimeoutSeconds: 300, extra: parsedPrice.extra }] } };
       },
     },
     'GET /': {
       accepts: [{ scheme: 'exact' as const, price: config.price, network: config.network as Network, payTo: config.receiver }],
       description: 'Access BountyVerifier service metadata and paid API entry point.',
       mimeType: 'text/html',
-      serviceName,
-      tags,
       unpaidResponseBody: async (context: HTTPRequestContext) => {
         const parsedPrice = await priceParser.parsePrice(config.price, config.network as Network);
         return { contentType: 'application/json', body: {
           x402Version: 2, error: 'Payment required',
-          resource: { url: context.adapter.getUrl(), description: 'Access BountyVerifier service metadata and paid API entry point.', mimeType: 'text/html', serviceName, tags },
+          resource: { url: context.adapter.getUrl(), description: 'Access BountyVerifier service metadata and paid API entry point.', mimeType: 'text/html' },
           accepts: [{ scheme: 'exact', network: config.network, amount: parsedPrice.amount, asset: parsedPrice.asset, payTo: config.receiver, maxTimeoutSeconds: 300, extra: parsedPrice.extra }],
         } };
       },
@@ -89,8 +85,6 @@ export function createX402PaymentMiddleware(
       accepts: [{ scheme: 'exact' as const, price: config.deepPrice, network: config.network as Network, payTo: config.receiver }],
       description: deepDescription,
       mimeType: 'application/json',
-      serviceName,
-      tags: [...tags, 'deep-analysis'],
       extensions: discovery,
       unpaidResponseBody: async (context: HTTPRequestContext) => {
         const parsedPrice = await priceParser.parsePrice(config.deepPrice, config.network as Network);
@@ -100,8 +94,6 @@ export function createX402PaymentMiddleware(
             url: context.adapter.getUrl(),
             description: deepDescription,
             mimeType: 'application/json',
-            serviceName,
-            tags: [...tags, 'deep-analysis'],
           },
           accepts: [{
             scheme: 'exact', network: config.network, amount: parsedPrice.amount,
@@ -122,8 +114,6 @@ export function createX402PaymentMiddleware(
       ],
       description,
       mimeType: 'application/json',
-      serviceName,
-      tags,
       extensions: discovery,
       unpaidResponseBody: async (context: HTTPRequestContext) => {
         const parsedPrice = await priceParser.parsePrice(
@@ -139,8 +129,6 @@ export function createX402PaymentMiddleware(
               url: context.adapter.getUrl(),
               description,
               mimeType: 'application/json',
-              serviceName,
-              tags,
             },
             accepts: [
               {
