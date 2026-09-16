@@ -34,6 +34,15 @@ export function createApp(deps: AppDependencies = {}) {
   const fetchSnapshot = deps.fetchSnapshot ?? fetchGitHubSnapshot;
   const paidVerification = deps.paidVerification ?? Boolean(deps.paymentMiddleware);
 
+  app.use('*', async (c, next) => {
+    c.header('Access-Control-Allow-Origin', '*');
+    c.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    c.header('Access-Control-Allow-Headers', 'content-type, payment-signature, x-payment');
+    c.header('Access-Control-Expose-Headers', 'payment-required, payment-response, x-payment-response');
+    if (c.req.method === 'OPTIONS') return c.body(null, 204);
+    await next();
+  });
+
   if (deps.paymentMiddleware) {
     app.use('/', deps.paymentMiddleware);
   }
