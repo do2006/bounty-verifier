@@ -1,0 +1,12 @@
+name = "bounty-verifier-api"
+main = "src/worker.ts"
+compatibility_date = "2026-09-15"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+keep_vars = true
+
+[vars]
+PAYMENTS_ENABLED = "true"
+X402_FACILITATOR_URL = "https://facilitator.payai.network"
+X402_NETWORK = "eip155:8453"
+X402_PRICE = "$0.02"

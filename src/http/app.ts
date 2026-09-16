@@ -4,6 +4,7 @@ import { verifySnapshot } from '../domain/verify.js';
 import { fetchGitHubSnapshot, GitHubSourceError } from '../sources/github.js';
 import { parseGitHubIssueUrl } from '../sources/url.js';
 import { errorEnvelope } from './errors.js';
+import { homePageHtml } from './home.js';
 
 export interface AppDependencies {
   fetchSnapshot?: (url: string) => Promise<BountySnapshot>;
@@ -30,6 +31,8 @@ export function createApp(deps: AppDependencies = {}) {
   const app = new Hono();
   const fetchSnapshot = deps.fetchSnapshot ?? fetchGitHubSnapshot;
   const paidVerification = deps.paidVerification ?? Boolean(deps.paymentMiddleware);
+
+  app.get('/', (c) => c.html(homePageHtml()));
 
   app.get('/health', (c) =>
     c.json({ ok: true, service: 'bounty-verifier', version: '0.1.0', paidVerification }),

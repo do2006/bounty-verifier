@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { fetchGitHubSnapshot, GitHubSourceError } from '../src/sources/github.js';
+import { fetchGitHubSnapshot } from '../src/sources/github.js';
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
