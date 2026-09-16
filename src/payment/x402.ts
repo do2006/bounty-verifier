@@ -52,6 +52,21 @@ export function createX402PaymentMiddleware(
   });
 
   const routes = {
+    'GET /': {
+      accepts: [{ scheme: 'exact' as const, price: config.price, network: config.network as Network, payTo: config.receiver }],
+      description: 'Access BountyVerifier service metadata and paid API entry point.',
+      mimeType: 'text/html',
+      serviceName,
+      tags,
+      unpaidResponseBody: async (context: HTTPRequestContext) => {
+        const parsedPrice = await priceParser.parsePrice(config.price, config.network as Network);
+        return { contentType: 'application/json', body: {
+          x402Version: 2, error: 'Payment required',
+          resource: { url: context.adapter.getUrl(), description: 'Access BountyVerifier service metadata and paid API entry point.', mimeType: 'text/html', serviceName, tags },
+          accepts: [{ scheme: 'exact', network: config.network, amount: parsedPrice.amount, asset: parsedPrice.asset, payTo: config.receiver, maxTimeoutSeconds: 300, extra: parsedPrice.extra }],
+        } };
+      },
+    },
     'POST /verify': {
       accepts: [
         {

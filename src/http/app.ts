@@ -34,6 +34,10 @@ export function createApp(deps: AppDependencies = {}) {
   const fetchSnapshot = deps.fetchSnapshot ?? fetchGitHubSnapshot;
   const paidVerification = deps.paidVerification ?? Boolean(deps.paymentMiddleware);
 
+  if (deps.paymentMiddleware) {
+    app.use('/', deps.paymentMiddleware);
+  }
+
   app.get('/', (c) => c.html(homePageHtml()));
 
   app.get('/openapi.json', (c) => {

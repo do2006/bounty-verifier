@@ -6,8 +6,12 @@ const blocker: MiddlewareHandler = async (c) =>
   c.json({ error: 'payment_required' }, 402);
 
 describe('HTTP payment boundary', () => {
-  test('keeps health and demo free while gating verify', async () => {
+  test('keeps health and demo free while gating paid entry points', async () => {
     const app = createApp({ paymentMiddleware: blocker, paidVerification: true });
+
+    const root = await app.request('/');
+    expect(root.status).toBe(402);
+    expect(await root.json()).toEqual({ error: 'payment_required' });
 
     const health = await app.request('/health');
     expect(health.status).toBe(200);
