@@ -11,7 +11,7 @@ describe('buyer landing page', () => {
 
     const body = await response.text();
     expect(body).toContain('BountyVerifier');
-    expect(body).toContain('$0.02 USDC');
+    expect(body).toContain('$0.005 USDC');
     expect(body).toContain('/verify');
     expect(body).toContain('/demo');
   });

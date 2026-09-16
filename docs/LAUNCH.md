@@ -10,7 +10,7 @@
 
 **Free demo:** `https://bounty-verifier-api.planet-teacher.workers.dev/demo`
 
-**Payment:** x402 v2, $0.02 USDC, Base mainnet
+**Payment:** x402 v2, $0.005 USDC, Base mainnet
 
 **Input:** Public GitHub issue URL
 

@@ -25,7 +25,7 @@ describe('loadPaymentConfig', () => {
       enabled: true,
       receiver,
       network: 'eip155:8453',
-      price: '$0.02',
+      price: '$0.005',
     });
   });
 });

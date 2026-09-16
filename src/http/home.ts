@@ -5,7 +5,7 @@ export function homePageHtml(): string {
 <body style="font-family:system-ui,sans-serif;max-width:820px;margin:48px auto;padding:0 20px;line-height:1.55">
 <h1>BountyVerifier</h1>
 <p>Evidence-backed verification for public GitHub bounties before you spend hours coding.</p>
-<p><strong>Paid verification:</strong> $0.02 USDC on Base via x402.</p>
+<p><strong>Paid verification:</strong> $0.005 USDC on Base via x402.</p>
 <h2>Endpoints</h2>
 <ul>
 <li><code>GET /health</code> — service status</li>

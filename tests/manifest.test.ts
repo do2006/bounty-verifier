@@ -19,7 +19,7 @@ describe('x402 well-known manifest', () => {
       expect.objectContaining({
         method: 'POST',
         resource: 'POST /verify',
-        price: '$0.02',
+        price: '$0.005',
       }),
     ]));
   });

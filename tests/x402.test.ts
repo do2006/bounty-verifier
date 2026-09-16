@@ -27,7 +27,7 @@ describe('createX402PaymentMiddleware', () => {
       receiver: '0x1111111111111111111111111111111111111111',
       facilitatorUrl: 'https://example.invalid',
       network: 'eip155:8453',
-      price: '$0.02',
+      price: '$0.005',
     }, facilitator));
     app.post('/verify', (c) => c.json({ ok: true }));
 
@@ -49,7 +49,7 @@ describe('createX402PaymentMiddleware', () => {
     expect(body.accepts[0]).toMatchObject({
       scheme: 'exact',
       network: 'eip155:8453',
-      amount: '20000',
+      amount: '5000',
       asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
       payTo: '0x1111111111111111111111111111111111111111',
     });

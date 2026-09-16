@@ -36,7 +36,7 @@ Payment requirement:
 - scheme: `exact`
 - network: Base mainnet (`eip155:8453`)
 - asset: Circle USDC on Base
-- price: `$0.02`
+- price: `$0.005`
 
 A successful paid response includes fields such as:
 ```json

@@ -41,7 +41,7 @@ export function openApiDocument() {
           'x-payment-info': {
             protocols: ['x402'],
             pricingMode: 'fixed',
-            price: '0.02',
+            price: '0.005',
             currency: 'USD',
           },
           requestBody: {

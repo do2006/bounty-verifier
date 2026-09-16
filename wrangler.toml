@@ -9,4 +9,4 @@ keep_vars = true
 PAYMENTS_ENABLED = "true"
 X402_FACILITATOR_URL = "https://facilitator.payai.network"
 X402_NETWORK = "eip155:8453"
-X402_PRICE = "$0.02"
+X402_PRICE = "$0.005"

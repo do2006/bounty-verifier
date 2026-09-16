@@ -13,7 +13,7 @@ describe('OpenAPI discovery document', () => {
     expect(spec.paths['/verify'].post['x-payment-info']).toMatchObject({
       protocols: ['x402'],
       pricingMode: 'fixed',
-      price: '0.02',
+      price: '0.005',
       currency: 'USD',
     });
     expect(spec.paths['/verify'].post.responses['402']).toBeTruthy();

@@ -21,7 +21,7 @@ Free endpoints:
 - `GET /demo` — sample verification output
 
 Paid endpoint:
-- `POST /verify` — **$0.02 USDC on Base mainnet via x402**
+- `POST /verify` — **$0.005 USDC on Base mainnet via x402**
 
 ## Quick checks
 

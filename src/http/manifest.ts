@@ -9,7 +9,7 @@ export const x402Manifest = {
       resource: 'POST /verify',
       method: 'POST',
       description: 'Analyze one public GitHub bounty issue before implementation begins.',
-      price: '$0.02',
+      price: '$0.005',
       tags: ['github', 'bounties', 'developer-tools', 'agents'],
       inputSchema: {
         type: 'object',

@@ -30,6 +30,6 @@ export function loadPaymentConfig(env: PaymentEnv): PaymentConfig {
     receiver,
     facilitatorUrl: env.X402_FACILITATOR_URL ?? 'https://facilitator.payai.network',
     network: env.X402_NETWORK ?? 'eip155:8453',
-    price: env.X402_PRICE ?? '$0.02',
+    price: env.X402_PRICE ?? '$0.005',
   };
 }
