@@ -5,6 +5,7 @@ import { fetchGitHubSnapshot, GitHubSourceError } from '../sources/github.js';
 import { parseGitHubIssueUrl } from '../sources/url.js';
 import { errorEnvelope } from './errors.js';
 import { homePageHtml } from './home.js';
+import { x402Manifest } from './manifest.js';
 
 export interface AppDependencies {
   fetchSnapshot?: (url: string) => Promise<BountySnapshot>;
@@ -33,6 +34,12 @@ export function createApp(deps: AppDependencies = {}) {
   const paidVerification = deps.paidVerification ?? Boolean(deps.paymentMiddleware);
 
   app.get('/', (c) => c.html(homePageHtml()));
+
+  app.get('/.well-known/x402', (c) => {
+    c.header('Access-Control-Allow-Origin', '*');
+    c.header('Cache-Control', 'public, max-age=300');
+    return c.json(x402Manifest);
+  });
 
   app.get('/health', (c) =>
     c.json({ ok: true, service: 'bounty-verifier', version: '0.1.0', paidVerification }),
