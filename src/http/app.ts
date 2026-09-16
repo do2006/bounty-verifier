@@ -58,6 +58,10 @@ export function createApp(deps: AppDependencies = {}) {
     return c.json(true402ServiceManifest);
   });
 
+  app.get('/.well-known/402index-verify.txt', (c) =>
+    c.text('5b4119eb754de64d25c1cb326eabd49d40085e4331c84804551f667128ed081c'),
+  );
+
   app.get('/health', (c) =>
     c.json({ ok: true, service: 'bounty-verifier', version: '0.1.0', paidVerification }),
   );
