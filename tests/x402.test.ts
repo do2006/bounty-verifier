@@ -20,7 +20,7 @@ const facilitator: FacilitatorClient = {
 };
 
 describe('createX402PaymentMiddleware', () => {
-  test('returns x402 payment requirements for an unpaid verify request', async () => {
+  test('returns x402 requirements in both header and JSON body', async () => {
     const app = new Hono();
     app.use('/verify', createX402PaymentMiddleware({
       enabled: true,
@@ -42,5 +42,17 @@ describe('createX402PaymentMiddleware', () => {
     expect(header).toBeTruthy();
     const decoded = JSON.parse(Buffer.from(header!, 'base64').toString('utf8'));
     expect(decoded.extensions?.bazaar).toBeTruthy();
+
+    const body = await response.json() as any;
+    expect(body.x402Version).toBe(2);
+    expect(body.accepts).toHaveLength(1);
+    expect(body.accepts[0]).toMatchObject({
+      scheme: 'exact',
+      network: 'eip155:8453',
+      amount: '20000',
+      asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      payTo: '0x1111111111111111111111111111111111111111',
+    });
+    expect(body.extensions?.bazaar).toBeTruthy();
   });
 });

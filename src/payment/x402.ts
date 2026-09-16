@@ -4,11 +4,16 @@ import {
   HTTPFacilitatorClient,
   x402ResourceServer,
   type FacilitatorClient,
+  type HTTPRequestContext,
 } from '@x402/core/server';
 import type { Network } from '@x402/core/types';
-import { registerExactEvmScheme } from '@x402/evm/exact/server';
+import { ExactEvmScheme, registerExactEvmScheme } from '@x402/evm/exact/server';
 import { declareDiscoveryExtension } from '@x402/extensions/bazaar';
 import type { PaymentConfig } from './config.js';
+
+const description = 'Verify whether a public GitHub bounty is actionable, funded-looking, and low-friction.';
+const serviceName = 'BountyVerifier';
+const tags = ['github', 'bounties', 'developer-tools', 'agents'];
 
 export function createX402PaymentMiddleware(
   config: Extract<PaymentConfig, { enabled: true }>,
@@ -21,6 +26,7 @@ export function createX402PaymentMiddleware(
 
   const server = new x402ResourceServer(facilitatorClient);
   registerExactEvmScheme(server, { networks: [config.network as Network] });
+  const priceParser = new ExactEvmScheme();
 
   const discovery = declareDiscoveryExtension({
     bodyType: 'json',
@@ -55,11 +61,43 @@ export function createX402PaymentMiddleware(
           payTo: config.receiver,
         },
       ],
-      description: 'Verify whether a public GitHub bounty is actionable, funded-looking, and low-friction.',
+      description,
       mimeType: 'application/json',
-      serviceName: 'BountyVerifier',
-      tags: ['github', 'bounties', 'developer-tools', 'agents'],
+      serviceName,
+      tags,
       extensions: discovery,
+      unpaidResponseBody: async (context: HTTPRequestContext) => {
+        const parsedPrice = await priceParser.parsePrice(
+          config.price,
+          config.network as Network,
+        );
+        return {
+          contentType: 'application/json',
+          body: {
+            x402Version: 2,
+            error: 'Payment required',
+            resource: {
+              url: context.adapter.getUrl(),
+              description,
+              mimeType: 'application/json',
+              serviceName,
+              tags,
+            },
+            accepts: [
+              {
+                scheme: 'exact',
+                network: config.network,
+                amount: parsedPrice.amount,
+                asset: parsedPrice.asset,
+                payTo: config.receiver,
+                maxTimeoutSeconds: 300,
+                extra: parsedPrice.extra,
+              },
+            ],
+            extensions: discovery,
+          },
+        };
+      },
     },
   };
 

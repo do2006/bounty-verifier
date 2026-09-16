@@ -6,6 +6,7 @@ import { parseGitHubIssueUrl } from '../sources/url.js';
 import { errorEnvelope } from './errors.js';
 import { homePageHtml } from './home.js';
 import { x402Manifest } from './manifest.js';
+import { openApiDocument } from './openapi.js';
 
 export interface AppDependencies {
   fetchSnapshot?: (url: string) => Promise<BountySnapshot>;
@@ -34,6 +35,12 @@ export function createApp(deps: AppDependencies = {}) {
   const paidVerification = deps.paidVerification ?? Boolean(deps.paymentMiddleware);
 
   app.get('/', (c) => c.html(homePageHtml()));
+
+  app.get('/openapi.json', (c) => {
+    c.header('Access-Control-Allow-Origin', '*');
+    c.header('Cache-Control', 'public, max-age=300');
+    return c.json(openApiDocument());
+  });
 
   app.get('/.well-known/x402', (c) => {
     c.header('Access-Control-Allow-Origin', '*');
