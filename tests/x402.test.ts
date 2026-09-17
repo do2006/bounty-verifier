@@ -45,6 +45,7 @@ describe('createX402PaymentMiddleware', () => {
     expect(decoded.extensions?.bazaar).toBeTruthy();
 
     const body = await response.json() as any;
+    expect(body.extensions).toEqual(decoded.extensions);
     expect(body.x402Version).toBe(2);
     expect(body.accepts).toHaveLength(1);
     expect(body.accepts[0]).toMatchObject({

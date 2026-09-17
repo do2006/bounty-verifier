@@ -99,7 +99,7 @@ export function createX402PaymentMiddleware(
             scheme: 'exact', network: config.network, amount: parsedPrice.amount,
             asset: parsedPrice.asset, payTo: config.receiver, maxTimeoutSeconds: 300, extra: parsedPrice.extra,
           }],
-          extensions: discovery,
+          extensions: server.enrichExtensions(discovery, context),
         } };
       },
     },
@@ -141,7 +141,7 @@ export function createX402PaymentMiddleware(
                 extra: parsedPrice.extra,
               },
             ],
-            extensions: discovery,
+            extensions: server.enrichExtensions(discovery, context),
           },
         };
       },
