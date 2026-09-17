@@ -114,3 +114,31 @@ test('charges the deep verification route at five cents', async () => {
   const decoded = JSON.parse(Buffer.from(header!, 'base64').toString('utf8'));
   expect(decoded.accepts?.[0]?.amount).toBe('50000');
 });
+
+
+test('returns an unpaid challenge without contacting the facilitator on a cold isolate', async () => {
+  let supportedCalls = 0;
+  const coldFacilitator: FacilitatorClient = {
+    async getSupported() {
+      supportedCalls += 1;
+      throw new Error('unpaid challenge must not contact facilitator');
+    },
+    async verify() { throw new Error('not reached without payment'); },
+    async settle() { throw new Error('not reached without payment'); },
+  };
+  const app = new Hono();
+  app.use('/verify', createX402PaymentMiddleware({
+    enabled: true,
+    receiver: '0x1111111111111111111111111111111111111111',
+    facilitatorUrl: 'https://example.invalid',
+    network: 'eip155:8453',
+    price: '$0.005',
+    deepPrice: '$0.05',
+  }, coldFacilitator));
+  app.post('/verify', (c) => c.json({ ok: true }));
+
+  const response = await app.request('/verify', { method: 'POST' });
+  expect(response.status).toBe(402);
+  expect(response.headers.get('payment-required')).toBeTruthy();
+  expect(supportedCalls).toBe(0);
+});

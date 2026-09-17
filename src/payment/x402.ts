@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono';
-import { paymentMiddleware } from '@x402/hono';
+import { HonoAdapter, paymentMiddleware } from '@x402/hono';
 import {
   HTTPFacilitatorClient,
   x402ResourceServer,
@@ -146,5 +146,98 @@ export function createX402PaymentMiddleware(
     },
   };
 
-  return paymentMiddleware(routes, server, undefined, undefined, true);
+  const protocolMiddleware = paymentMiddleware(routes, server, undefined, undefined, false);
+  let facilitatorInitialization: Promise<void> | null = null;
+
+  const ensureFacilitatorInitialized = async () => {
+    if (!facilitatorInitialization) {
+      facilitatorInitialization = server.initialize().catch((error) => {
+        facilitatorInitialization = null;
+        throw error;
+      });
+    }
+    await facilitatorInitialization;
+  };
+
+  const buildLocalChallenge = async (context: HTTPRequestContext) => {
+    const route = `${context.method.toUpperCase()} ${context.path}`;
+    let price: string;
+    let routeDescription: string;
+    let mimeType = 'application/json';
+    let extensions: typeof discovery | undefined;
+
+    switch (route) {
+      case 'GET /':
+        price = config.price;
+        routeDescription = 'Access BountyVerifier service metadata and paid API entry point.';
+        mimeType = 'text/html';
+        break;
+      case 'GET /verify':
+      case 'POST /verify':
+        price = config.price;
+        routeDescription = description;
+        break;
+      case 'GET /verify/deep':
+        price = config.deepPrice;
+        routeDescription = deepDescription;
+        break;
+      case 'POST /verify/deep':
+        price = config.deepPrice;
+        routeDescription = deepDescription;
+        extensions = discovery;
+        break;
+      default:
+        return null;
+    }
+
+    const parsedPrice = await priceParser.parsePrice(price, config.network as Network);
+    const body: Record<string, unknown> = {
+      x402Version: 2,
+      error: 'Payment required',
+      resource: {
+        url: context.adapter.getUrl(),
+        description: routeDescription,
+        mimeType,
+      },
+      accepts: [{
+        scheme: 'exact',
+        network: config.network,
+        amount: parsedPrice.amount,
+        asset: parsedPrice.asset,
+        payTo: config.receiver,
+        maxTimeoutSeconds: 300,
+        extra: parsedPrice.extra,
+      }],
+    };
+    if (extensions) body.extensions = server.enrichExtensions(extensions, context);
+    return body;
+  };
+
+  return async (c, next) => {
+    const paymentHeader = c.req.header('payment-signature') || c.req.header('x-payment');
+    const context: HTTPRequestContext = {
+      adapter: new HonoAdapter(c),
+      path: c.req.path,
+      method: c.req.method,
+      ...(paymentHeader ? { paymentHeader } : {}),
+    };
+    const challenge = await buildLocalChallenge(context);
+
+    if (challenge && !paymentHeader) {
+      c.header('payment-required', Buffer.from(JSON.stringify(challenge), 'utf8').toString('base64'));
+      c.header('Cache-Control', 'no-store');
+      return c.json(challenge, 402);
+    }
+
+    if (challenge && paymentHeader) {
+      try {
+        await ensureFacilitatorInitialized();
+      } catch (error) {
+        console.error('Failed to initialize x402 facilitator for paid request:', error);
+        return c.json({ error: 'Payment facilitator unavailable.' }, 502);
+      }
+    }
+
+    return protocolMiddleware(c, next);
+  };
 }
