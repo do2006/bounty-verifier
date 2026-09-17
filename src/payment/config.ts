@@ -5,6 +5,7 @@ export interface PaymentEnv {
   X402_NETWORK?: string;
   X402_PRICE?: string;
   X402_DEEP_PRICE?: string;
+  NOHUMANS_CLAIM_TOKEN?: string;
 }
 
 export type PaymentConfig =
