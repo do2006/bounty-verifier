@@ -142,3 +142,23 @@ test('returns an unpaid challenge without contacting the facilitator on a cold i
   expect(response.headers.get('payment-required')).toBeTruthy();
   expect(supportedCalls).toBe(0);
 });
+
+
+test('keeps the payment authorization window within strict client limits', async () => {
+  const app = new Hono();
+  app.use('/verify', createX402PaymentMiddleware({
+    enabled: true,
+    receiver: '0x1111111111111111111111111111111111111111',
+    facilitatorUrl: 'https://example.invalid',
+    network: 'eip155:8453',
+    price: '$0.005',
+    deepPrice: '$0.05',
+  }, facilitator));
+  app.post('/verify', (c) => c.json({ ok: true }));
+
+  const response = await app.request('/verify', { method: 'POST' });
+  const header = response.headers.get('payment-required');
+  expect(header).toBeTruthy();
+  const decoded = JSON.parse(Buffer.from(header!, 'base64').toString('utf8'));
+  expect(decoded.accepts?.[0]?.maxTimeoutSeconds).toBeLessThanOrEqual(60);
+});
