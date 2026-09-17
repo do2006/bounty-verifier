@@ -114,7 +114,6 @@ export function createX402PaymentMiddleware(
       ],
       description,
       mimeType: 'application/json',
-      extensions: discovery,
       unpaidResponseBody: async (context: HTTPRequestContext) => {
         const parsedPrice = await priceParser.parsePrice(
           config.price,
@@ -141,7 +140,6 @@ export function createX402PaymentMiddleware(
                 extra: parsedPrice.extra,
               },
             ],
-            extensions: server.enrichExtensions(discovery, context),
           },
         };
       },

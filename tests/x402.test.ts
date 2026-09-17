@@ -42,7 +42,7 @@ describe('createX402PaymentMiddleware', () => {
     const header = response.headers.get('payment-required');
     expect(header).toBeTruthy();
     const decoded = JSON.parse(Buffer.from(header!, 'base64').toString('utf8'));
-    expect(decoded.extensions?.bazaar).toBeTruthy();
+    expect(decoded.extensions).toBeUndefined();
 
     const body = await response.json() as any;
     expect(body.extensions).toEqual(decoded.extensions);
@@ -55,7 +55,7 @@ describe('createX402PaymentMiddleware', () => {
       asset: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
       payTo: '0x1111111111111111111111111111111111111111',
     });
-    expect(body.extensions?.bazaar).toBeTruthy();
+    expect(body.extensions).toBeUndefined();
   });
 });
 

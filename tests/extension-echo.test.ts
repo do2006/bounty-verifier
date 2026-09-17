@@ -5,15 +5,20 @@ import { createX402PaymentMiddleware } from '../src/payment/x402.js';
 
 const config={enabled:true as const,receiver:'0x1111111111111111111111111111111111111111',facilitatorUrl:'https://example.invalid',network:'eip155:8453',price:'$0.005',deepPrice:'$0.05'};
 
-describe('x402 extension echo',()=>{
- test('accepts the exact extensions map from the immediately preceding challenge',async()=>{
+describe('PayAPI x402 compatibility',()=>{
+ test('POST /verify omits optional extensions and reaches facilitator with a stock payment payload',async()=>{
   const verify=vi.fn(async()=>({isValid:false,invalidReason:'facilitator_reached'}));
   const facilitator:FacilitatorClient={getSupported:async()=>({kinds:[{x402Version:2,scheme:'exact',network:'eip155:8453'}],extensions:['bazaar'],signers:{}}),verify,settle:async()=>{throw new Error('not reached')}};
   const app=new Hono(); app.use('/verify',createX402PaymentMiddleware(config,facilitator)); app.post('/verify',c=>c.json({ok:true}));
   const requestBody=JSON.stringify({url:'https://github.com/x402-foundation/x402/issues/803'});
   const first=await app.request('/verify',{method:'POST',headers:{'content-type':'application/json'},body:requestBody});
   const challenge=await first.json() as any;
-  const payload={x402Version:2,accepted:challenge.accepts[0],payload:{},extensions:challenge.extensions};
+  const header=first.headers.get('payment-required');
+  expect(header).toBeTruthy();
+  const headerChallenge=JSON.parse(Buffer.from(header as string,'base64').toString('utf8'));
+  expect(challenge.extensions).toBeUndefined();
+  expect(headerChallenge.extensions).toBeUndefined();
+  const payload={x402Version:2,accepted:challenge.accepts[0],payload:{}};
   const signature=Buffer.from(JSON.stringify(payload)).toString('base64');
   const second=await app.request('/verify',{method:'POST',headers:{'content-type':'application/json','payment-signature':signature},body:requestBody});
   const result=await second.json() as any;
